@@ -1,0 +1,160 @@
+﻿<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+
+		<title>捕鱼达人</title>
+	</head>
+
+	<body>
+		<div id="container">
+			<div id="main"  >
+				<div id="stage" style="margin: 0 auto; width: 800px; height: 480px;  text-align: center; vertical-align: middle" >
+
+					<canvas id="canvas"  width="800" height="480">
+						不支持画板对象时能看到
+					</canvas>
+				</div>
+			</div>
+		</div>
+		<script type="text/javascript">
+			var canvas = document.getElementById("canvas");
+			var ctx = canvas.getContext('2d');
+
+			var bg = new Image();
+			bg.src = "images/bg.jpg";
+
+			function Fish() {
+				this.x = 800;
+				this.y = Math.random() * (480 - 100);
+				var randomFish = parseInt(Math.random() * 11 + 1);
+				this.score = randomFish + 1;
+				var fish = [];
+				for (var i = 0; i < 10; i++) {
+					var fishImage = new Image();
+					fishImage.src = "images/fish" + randomFish + "_" + i + ".png";
+					fish[i] = fishImage;
+				}
+				this.frame = fish[0];
+				this.probability = randomFish;
+				var interval = 70;
+				var lastTime = 0;
+				function timeOut() {
+					var current = new Date().getTime();
+					var t = current - lastTime;
+					if (t >= interval) {
+						lastTime = current;
+						return true;
+					}
+					return false;
+				}
+
+				var index = 0;
+				this.step = function() {
+					if (timeOut()) {
+						this.x = this.x - 2;
+						this.frame = fish[index % 10];
+						index = index + 1;
+					}
+				}
+				this.paint = function(ctx) {
+					ctx.drawImage(this.frame, this.x, this.y);
+					ctx.font = "20px Consolas";
+					ctx.fillStyle = "green"
+					ctx.fillText("SCORE:" + SCORE, 10, 20);
+				}
+			}
+
+			function Net() {
+				var NET = new Image();
+				NET.src = "images/net.png";
+				this.x = 0;
+				this.y = 0;
+				this.paint = function(ctx) {
+					ctx.drawImage(NET, this.x, this.y);
+				}
+			}
+
+
+			canvas.onmousemove = function(e) {
+				var mpoint = getPointOnCanvas(e.x, e.y);
+				net.x = mpoint.x - 80;
+				net.y = mpoint.y - 80;
+			}
+			var SCORE = 0;
+			canvas.onclick = function() {
+				for (var i = 0; i < allFish.length; i++) {
+					//netCatch();
+					var n;
+					if (allFish[i].probability <= 5) {
+						n = 0.7;
+						netCatch();
+
+					}else if (allFish[i].probability <= 9) {
+						n = 0.5;
+						netCatch();
+
+					}else if (allFish[i].probability ==10 ) {
+						n = 0.1;
+						netCatch();
+
+					}else{
+						n = 0.35;
+						netCatch();
+					}
+				}
+				function netCatch() {
+					if ((allFish[i].x > (net.x - 50) && allFish[i].x < (net.x + 160)) && (allFish[i].y > (net.y - 48) && allFish[i].y < (net.y + 160))&&Math.random()<n) {
+						SCORE = SCORE + allFish[i].score;
+						remove(i);
+
+					}
+				}
+
+			}
+			function remove(i) {
+				allFish.splice(i, 1);
+			}
+
+			function getPointOnCanvas(x, y) {
+				var bbox = canvas.getBoundingClientRect();
+				return {
+					x : x - bbox.left,
+					y : y - bbox.top
+				};
+			}
+
+			var lastTime = 0;
+			var interval = 800;
+			function isActionTime(lastTime, interval) {
+				if (lastTime == 0) {
+					return true;
+
+				}
+				var currentTime = new Date().getTime();
+				return currentTime - lastTime >= interval;
+
+			}
+
+			var allFish = [];
+			var net = new Net();
+			setInterval(function() {
+				ctx.drawImage(bg, 0, 0);
+				for (var i = 0; i < allFish.length; i++) {
+					allFish[i].paint(ctx);
+				}
+				for (var i = 0; i < allFish.length; i++) {
+					allFish[i].step();
+				}
+				net.paint(ctx);
+				if (!isActionTime(lastTime, interval)) {
+					return;
+				}
+				lastTime = new Date().getTime();
+				allFish[allFish.length] = new Fish();
+			}, 10);
+
+		</script>
+	</body>
+</html>
+
